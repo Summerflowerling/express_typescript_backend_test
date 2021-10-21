@@ -22,7 +22,7 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello')
 });
 
-const port = 8085
+const port = 8089
 app.listen(port, () => { console.log(`server running on ${port}` )});
 
 
@@ -67,13 +67,32 @@ const isPixaBayData = (data: any): data is PixabayData => {
   return 'hits' in data;
 };
 
+let userInputLocation = ""
 
-app.get('/getGeoname', async (req, res) => {
-  // const API_URL = `http://api.geonames.org/searchJSON?q=${req.body.location}&maxRows=1&username=iku124`;
-  const API_URL = `http://api.geonames.org/searchJSON?q="paris"&maxRows=1&username=iku124`;
+/*
+app.post('/search', async (req, res) => {
+  console.log(req.body.city)
+  userInputLocation = req.body.city
+  const API_URL = `http://api.geonames.org/searchJSON?q=${userInputLocation}&maxRows=1&username=iku124`
+  const myPromise = await got(API_URL);
+  try {
+    const geonamesBody = JSON.parse(myPromise.body)
+    res.send(geonamesBody)
+  } catch (error) {
+    console.log("Catce error", error)
+  }
+})
+*/
+
+
+
+app.post('/getGeoname', async (req, res) => {
+  userInputLocation = req.body.city
+   const API_URL = `http://api.geonames.org/searchJSON?q=${req.body.UserInputcity}&maxRows=1&username=iku124`;
+  //const API_URL = `http://api.geonames.org/searchJSON?q="paris"&maxRows=1&username=iku124`;
   const myPromise = await got(API_URL);
   let weatherbitRes;
-  let weatherbitPromiseObjType;
+  let weatherbitEveryDay;
   let pixabayRes;
 
   try {
@@ -85,17 +104,20 @@ app.get('/getGeoname', async (req, res) => {
         `https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lng}&days=7&key=25236c54b21347c5acba0d34020a5c84`,
       );
       weatherbitRes = JSON.parse(weatherbit.body);
+      weatherbitEveryDay = weatherbitRes.data.map((x: any) => {
+        return x.weather
+      })
       const pixabay = await got(
         `https://pixabay.com/api/?key=4772361-58a041a9c4a31b16cbe90fbc1&q=${geonamesBody.geonames[0].toponymName}&image_type=photo&editors_choice=true&category=travel`, 
       );
       pixabayRes = JSON.parse(pixabay.body);
           
-      res.send([weatherbitRes, pixabayRes.hits[0].largeImageURL]);
-      console.log('pixabayRes', pixabayRes.hits[0].largeImageURL);
+      res.send({ weatherbitRes,"weatherbitEveryDay":weatherbitEveryDay, "pixabayRes":pixabayRes.hits[0].largeImageURL});
+      console.log("weatherbitRes", weatherbitRes, "weatherbitEveryday:", weatherbitEveryDay)
             
     }
     catch (error) {
-      //res.send([weatherbitPromiseObjType, '/img/backup.png']);
+      //res.send(weatherbitPromiseObjType, '/img/backup.png']);
       console.log('Something wrong when fetching the photo', error);
     }
   }
