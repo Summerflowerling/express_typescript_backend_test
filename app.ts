@@ -104,16 +104,15 @@ app.post('/getGeoname', async (req, res) => {
         `https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lng}&days=7&key=25236c54b21347c5acba0d34020a5c84`,
       );
       weatherbitRes = JSON.parse(weatherbit.body);
-      weatherbitEveryDay = weatherbitRes.data.map((x: any) => {
-        return x.weather
-      })
+      
       const pixabay = await got(
         `https://pixabay.com/api/?key=4772361-58a041a9c4a31b16cbe90fbc1&q=${geonamesBody.geonames[0].toponymName}&image_type=photo&editors_choice=true&category=travel`, 
       );
       pixabayRes = JSON.parse(pixabay.body);
           
-      res.send({ weatherbitRes,"weatherbitEveryDay":weatherbitEveryDay, "pixabayRes":pixabayRes.hits[0].largeImageURL});
-      console.log("weatherbitRes", weatherbitRes, "weatherbitEveryday:", weatherbitEveryDay)
+      res.send({ weatherbitRes, "pixabayRes":pixabayRes.hits[0].largeImageURL});
+      console.log("weatherbitRes", weatherbitRes)
+      console.log(typeof weatherbitRes)
             
     }
     catch (error) {
